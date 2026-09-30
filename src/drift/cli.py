@@ -14,7 +14,8 @@ from drift.parse import FitParseError, load_fit
 
 def analyse_folder(data_dir: Path) -> pd.DataFrame:
     rows = []
-    for path in sorted(data_dir.glob("*.fit")):
+    paths = sorted(p for p in data_dir.rglob("*") if p.suffix.lower() == ".fit")
+    for path in paths:
         try:
             df = trim_warmup(load_fit(path))
             row = summarise(df)
@@ -22,7 +23,7 @@ def analyse_folder(data_dir: Path) -> pd.DataFrame:
         except (FitParseError, MetricError) as exc:
             print(f"skipped {path.name}: {exc}")
             continue
-        row["file"] = path.name
+        row["file"] = str(path.relative_to(data_dir))
         rows.append(row)
 
     if not rows:
